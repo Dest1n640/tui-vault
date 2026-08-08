@@ -2,8 +2,30 @@ cmake_minimum_required(VERSION 3.15)
 
 project(CoreModule)
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 find_package(Python REQUIRED COMPONENTS Interpreter Development)
 
-find_package(pybind11 REQUIRED)
+include(FetchContent)
+
+FetchContent_Declare(
+  pybind11
+  GIT_REPOSITORY https://github.com/pybind/pybind11.git
+)
+
+FetchContent_Declare(
+  sodium
+  GIT_REPOSITORY https://github.com/robinlinden/libsodium-cmake.git
+)
+
+FetchContent_Declare(
+  logger
+  GIT_REPOSITORY https://github.com/gabime/spdlog.git
+  GIT_TAG v1.x
+)
+
+FetchContent_MakeAvailable(sodium pybind11 logger)
 
 pybind11_add_module(core_module src/crypto.cpp)
+
+target_link_libraries(core_module PRIVATE sodium logger)
