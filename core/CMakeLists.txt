@@ -19,13 +19,13 @@ FetchContent_Declare(
 )
 
 FetchContent_Declare(
-  logger
+  spdlog
   GIT_REPOSITORY https://github.com/gabime/spdlog.git
   GIT_TAG v1.x
 )
 
-FetchContent_MakeAvailable(sodium pybind11 logger)
+FetchContent_MakeAvailable(sodium pybind11 spdlog)
 
 pybind11_add_module(core_module src/crypto.cpp)
 
-target_link_libraries(core_module PRIVATE sodium logger)
+target_link_libraries(core_module PRIVATE sodium spdlog)
