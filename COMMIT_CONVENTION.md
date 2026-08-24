@@ -6,7 +6,7 @@ Every commit message should be structured as follows:
 `<type>(<optional scope>): <description>`
 
 ## Types:
-* **feat**: A new feature (e.g., adding a new screen, new C++ crypto function)
+* **feat**: A new feature
 * **fix**: A bug fix
 * **refactor**: Code changes that neither fix a bug nor add a feature
 * **style**: Formatting, missing semi-colons, etc. (no code change)
