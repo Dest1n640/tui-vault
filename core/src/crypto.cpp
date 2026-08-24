@@ -32,8 +32,63 @@ std::vector<uint8_t> crypto_key(const std::string& password, const std::vector<u
     throw std::runtime_error("Key derivation failed");
   }
 
-  spdlog::info("Master key generated");
+  spdlog::debug("Master key generated");
   return key;
+}
+
+std::pair<std::vector<uint8_t>, std::vector<uint8_t>> encrypt_data(const std::string& plaintext, const std::vector<uint8_t>& key){
+  std::vector<uint8_t> nonce(crypto_aead_xchacha20poly1305_ietf_NPUBBYTES);
+  std::vector<uint8_t> ciphertext(plaintext.size() + crypto_aead_xchacha20poly1305_ietf_ABYTES);
+  randombytes_buf(nonce.data(), nonce.size());
+
+  int res = crypto_aead_xchacha20poly1305_ietf_encrypt(
+      ciphertext.data(),
+      NULL,
+      reinterpret_cast<const unsigned char*>(plaintext.data()),
+      plaintext.size(),
+      NULL,
+      0,
+      NULL,
+      nonce.data(),
+      key.data()
+  );
+
+  if (res != 0) {
+      spdlog::error("Encryption failed");
+      throw std::runtime_error("Encryption failed");
+  }
+  spdlog::debug("Encryption success");
+  return {nonce, ciphertext};
+}
+
+std::string decrypt_data(const std::vector<uint8_t>& ciphertext, const std::vector<uint8_t> key, const std::vector<uint8_t> nonce){
+  if (ciphertext.size() < crypto_aead_xchacha20poly1305_ietf_ABYTES) {
+    spdlog::error("Ciphertext too short");
+    throw std::invalid_argument("Ciphertext too short");
+  }
+
+  size_t decrypted_len = ciphertext.size() - crypto_aead_xchacha20poly1305_ietf_ABYTES;
+  std::vector<uint8_t> decrypted(decrypted_len, '\0');
+
+  int res = crypto_aead_xchacha20poly1305_ietf_decrypt(
+    reinterpret_cast<unsigned char*>(decrypted.data()),
+    NULL,
+    NULL,
+    ciphertext.data(),
+    ciphertext.size(),
+    NULL,
+    0, 
+    nonce.data(),
+    key.data()
+  );
+
+  if (res != 0){
+    spdlog::error("Decryption failed");
+    throw std::runtime_error("Decryption failed");
+  }
+
+  spdlog::debug("Decription success");
+  return std::string(decrypted.begin(), decrypted.end());
 }
 
 PYBIND11_MODULE(core_module, m, py::mod_gil_not_used()) {
@@ -47,4 +102,6 @@ PYBIND11_MODULE(core_module, m, py::mod_gil_not_used()) {
 
   m.doc() = "Crypto key";
   m.def("crypto_key", &crypto_key, "A function that hash key");
+  m.def("encrypt_data", &encrypt_data, "A function for encrypt key");
+  m.def("decrypt_data", &decrypt_data, "A function for decrypt key");
 }
