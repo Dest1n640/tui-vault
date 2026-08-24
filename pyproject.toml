@@ -7,6 +7,7 @@ requires-python = ">=3.12"
 dependencies = [
     "pybind11>=3.0.4",
     "pytest>=9.1.1",
+    "pytest-cov>=7.1.0",
     "textual>=8.2.8",
 ]
 
