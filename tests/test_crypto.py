@@ -32,3 +32,5 @@ def test_encryption_roundtrip(master_key, payload):
     nonce, ciphertext = encrypt_data(payload, master_key)
     decrypted = decrypt_data(ciphertext, master_key, nonce)
     assert decrypted == payload
+
+# TODO: дописать тесты для проверки целостности данных, аутентификации, передача шифротекста <16 байт
