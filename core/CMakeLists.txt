@@ -29,3 +29,7 @@ FetchContent_MakeAvailable(sodium pybind11 spdlog)
 pybind11_add_module(core_module src/crypto.cpp)
 
 target_link_libraries(core_module PRIVATE sodium spdlog)
+
+set_target_properties(core_module PROPERTIES
+    LIBRARY_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/../tui_vault"
+)
