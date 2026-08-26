@@ -1,5 +1,6 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from pathlib import Path
+from uuid import UUID, uuid4
 import os
 import json
 
@@ -7,6 +8,7 @@ from core_module import crypto_key, encrypt_data, decrypt_data
 
 
 class VaultItem(BaseModel):
+  id: UUID = Field(default_factory=uuid4)
   service: str
   login: str | None = None
   password: str | None = None
@@ -23,6 +25,7 @@ class VaultManager:
     self._salt: bytes | None = None
 
   def create_vault(self, master_password: str) -> None:
+    self.filepath.parent.mkdir(parents=True, exist_ok=True)
     self._salt = os.urandom(self.SALT_LEN)
     key = crypto_key(master_password, list(self._salt))
     nonce, ciphertext = encrypt_data("[]", key)
@@ -45,6 +48,6 @@ class VaultManager:
     if self._key is None or self._salt is None:
       raise RuntimeError("Vault is not unlocked or initialized")
 
-    raw_json = json.dumps([item.model_dump() for item in items])
+    raw_json = json.dumps([item.model_dump(mode="json") for item in items])
     nonce, ciphertext = encrypt_data(raw_json, self._key)
     self.filepath.write_bytes(self._salt + bytes(nonce) + bytes(ciphertext))
