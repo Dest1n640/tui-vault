@@ -5,9 +5,13 @@ from pathlib import Path
 import pytest
 
 ROOT = Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(ROOT / "core" / "build"))
+sys.path.insert(0, str(ROOT))
 
-from core_module import crypto_key, decrypt_data, encrypt_data
+from tui_vault.core_module import (
+    crypto_key,
+    decrypt_data,
+    encrypt_data,
+)
 
 
 @pytest.fixture
@@ -40,4 +44,5 @@ def test_encryption_roundtrip(master_key, payload):
     assert decrypted == payload
 
 
-# TODO: дописать тесты для проверки целостности данных, аутентификации, передача шифротекста <16 байт
+# TODO: дописать тесты для проверки целостности данных, аутентификации,
+# передача шифротекста <16 байт
