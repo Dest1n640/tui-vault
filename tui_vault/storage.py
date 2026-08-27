@@ -3,8 +3,10 @@ import os
 from pathlib import Path
 from uuid import UUID, uuid4
 
-from core_module import crypto_key, decrypt_data, encrypt_data
 from pydantic import BaseModel, Field
+
+from .core_module import crypto_key, decrypt_data, encrypt_data
+from .errors import WrongPasswordError
 
 
 class VaultItem(BaseModel):
@@ -27,8 +29,8 @@ class VaultManager:
     def create_vault(self, master_password: str) -> None:
         self.filepath.parent.mkdir(parents=True, exist_ok=True)
         self._salt = os.urandom(self.SALT_LEN)
-        key = crypto_key(master_password, list(self._salt))
-        nonce, ciphertext = encrypt_data("[]", key)
+        self._key = crypto_key(master_password, list(self._salt))
+        nonce, ciphertext = encrypt_data("[]", self._key)
         self.filepath.write_bytes(self._salt + bytes(nonce) + bytes(ciphertext))
 
     def unlock_vault(self, master_password: str) -> list[VaultItem]:
@@ -36,12 +38,19 @@ class VaultManager:
         if len(data) < self.SALT_LEN + self.NONCE_LEN + 16:
             raise ValueError("Data size less the need")
 
-        self._salt = data[: self.SALT_LEN]
+        salt = data[: self.SALT_LEN]
         nonce = data[self.SALT_LEN : self.SALT_LEN + self.NONCE_LEN]
         ciphertext = data[self.SALT_LEN + self.NONCE_LEN :]
-        self._key = crypto_key(master_password, list(self._salt))
-        raw_json = decrypt_data(list(ciphertext), self._key, list(nonce))
+        key = crypto_key(master_password, list(salt))
+
+        try:
+            raw_json = decrypt_data(list(ciphertext), key, list(nonce))
+        except RuntimeError as exc:
+            raise WrongPasswordError("Failed to decrypt vault") from exc
+
         vault = [VaultItem.model_validate(item) for item in json.loads(raw_json)]
+        self._salt = salt
+        self._key = key
         return vault
 
     def save_vault(self, items: list[VaultItem]):
@@ -51,3 +60,12 @@ class VaultManager:
         raw_json = json.dumps([item.model_dump(mode="json") for item in items])
         nonce, ciphertext = encrypt_data(raw_json, self._key)
         self.filepath.write_bytes(self._salt + bytes(nonce) + bytes(ciphertext))
+
+    def forget_key(self) -> None:
+        """Убрать производный от мастер-пароля ключ из памяти процесса.
+
+        Вызывается при блокировке: пока ключ жив, «заблокировано» означает
+        лишь спрятанный список записей, а не недоступное хранилище.
+        """
+        self._key = None
+        self._salt = None

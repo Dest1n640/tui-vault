@@ -2,7 +2,7 @@ from enum import Enum
 from pathlib import Path
 from uuid import UUID
 
-from storage import VaultItem, VaultManager
+from .storage import VaultItem, VaultManager
 
 MAIN_DIRECTORY = Path.home() / ".config" / "tui_vault" / "vault.bin"
 
@@ -20,25 +20,31 @@ class Session:
         self.items = []
 
     def create_session(self, master_password: str):
-        if self.state == State.FIRST_RUN:
-            self.vault_manager.create_vault(master_password)
-            self.state = State.UNLOCKED
+        if self.state != State.FIRST_RUN:
+            raise ValueError("Vault already exists")
+        self.vault_manager.create_vault(master_password)
+        self.state = State.UNLOCKED
 
     def unlock(self, master_password: str):
-        if self.state == State.LOCKED:
-            self.items = self.vault_manager.unlock_vault(master_password)
-            self.state = State.UNLOCKED
+        if self.state != State.LOCKED:
+            raise ValueError("Session is not locked")
+        self.items = self.vault_manager.unlock_vault(master_password)
+        self.state = State.UNLOCKED
         return self.items
 
     def lock(self):
         if self.state == State.UNLOCKED:
             self.vault_manager.save_vault(self.items)
             self.items = []
+            self.vault_manager.forget_key()
             self.state = State.LOCKED
 
-    def add_item(self, item: VaultItem):
-        if self.state == State.LOCKED:
+    def _require_unlocked(self):
+        if self.state != State.UNLOCKED:
             raise ValueError("Session is locked")
+
+    def add_item(self, item: VaultItem):
+        self._require_unlocked()
         self.items.append(item)
         self.vault_manager.save_vault(self.items)
         return self.items
@@ -47,11 +53,13 @@ class Session:
         return self.items
 
     def delete_items(self, id: UUID):
+        self._require_unlocked()
         self.items = [item for item in self.items if item.id != id]
         self.vault_manager.save_vault(self.items)
         return self.items
 
     def update_items(self, update_item: VaultItem):
+        self._require_unlocked()
         for ind, item in enumerate(self.items):
             if item.id == update_item.id:
                 self.items[ind] = update_item
