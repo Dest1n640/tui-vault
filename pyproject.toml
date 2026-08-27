@@ -7,6 +7,7 @@ requires-python = ">=3.12"
 dependencies = [
     "pybind11>=3.0.4",
     "pydantic>=2.13.4",
+    "pyperclip>=1.11.0",
     "pytest>=9.1.1",
     "pytest-cov>=7.1.0",
     "textual>=8.2.8",
