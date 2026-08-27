@@ -1,0 +1,116 @@
+/* Вся вёрстка интерфейса одним файлом — на четырёх экранах дробить нечего. */
+
+.muted {
+  color: $text-muted;
+}
+
+.error {
+  color: $error;
+  height: auto;
+}
+
+AuthScreen {
+  align: center middle;
+}
+
+#auth-box {
+  width: 60;
+  height: auto;
+  padding: 1 2;
+  border: round $primary;
+}
+
+#auth-title {
+  text-style: bold;
+  margin-bottom: 1;
+}
+
+#auth-box Input {
+  margin-top: 1;
+}
+
+#auth-error {
+  margin-top: 1;
+}
+
+#entries {
+  padding: 1 2;
+}
+
+#vault-empty {
+  width: 100%;
+  padding: 2 0;
+  text-align: center;
+  color: $text-muted;
+}
+
+EntryCard {
+  height: auto;
+  width: 100%;
+  padding: 0 1;
+  margin-bottom: 1;
+  border: round $panel-lighten-2;
+}
+
+EntryCard:focus {
+  border: round $accent;
+  background: $boost;
+}
+
+.card-service {
+  text-style: bold;
+}
+
+.card-meta {
+  color: $text-muted;
+}
+
+EntryFormScreen,
+ConfirmDeleteScreen {
+  align: center middle;
+}
+
+#form-box {
+  width: 70;
+  height: auto;
+  padding: 1 2;
+  background: $surface;
+  border: thick $primary;
+}
+
+#form-title {
+  text-style: bold;
+  margin-bottom: 1;
+}
+
+#form-box Label {
+  margin-top: 1;
+}
+
+#notes {
+  height: 6;
+  margin-bottom: 1;
+}
+
+#confirm-box {
+  width: 60;
+  height: auto;
+  padding: 1 2;
+  background: $surface;
+  border: thick $error;
+}
+
+#confirm-title {
+  text-style: bold;
+  margin-bottom: 1;
+}
+
+#confirm-buttons {
+  height: auto;
+  margin-top: 1;
+  align-horizontal: right;
+}
+
+#confirm-buttons Button {
+  margin-left: 2;
+}
